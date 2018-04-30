@@ -57,7 +57,7 @@ func NewHTTPTest(
 var TestResultMap = make(map[string]map[string]*gabs.Container)
 
 func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
-	if shouldLog {
+	if ShouldLog {
 		log.Println("====== Sending method ( " + HTTPTest.HTTPTestIn.Method + " ) to =======")
 		log.Println(HTTPTest.HTTPTestIn.URL)
 	}
@@ -79,7 +79,7 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	if shouldLog {
+	if ShouldLog {
 		log.Println("====== Received ( " + resp.Status + " ) =======")
 		if len(body) > 0 {
 			log.Println(strings.TrimSuffix(string(body), "\n"))
@@ -88,17 +88,17 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	}
 
 	if len(resp.Cookies()) > 0 {
-		if shouldLog {
+		if ShouldLog {
 			log.Println("====== Received new cookies =======")
 		}
 
 		for _, v := range resp.Cookies() {
-			if shouldLog {
+			if ShouldLog {
 				log.Println(v)
 			}
 			cookies[v.Name] = v
 		}
-		if shouldLog {
+		if ShouldLog {
 			log.Println("===============================================")
 		}
 
@@ -152,20 +152,24 @@ func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues []*KeyValu
 	}
 
 	for _, KeyValue := range KeyValues {
-		var valueToCheck string
 
-		if decodedBody[KeyValue.Key].Data() == nil {
+		var valueToCheck string
+		decodedBodyValue := decodedBody[KeyValue.Key].Data()
+
+		if decodedBodyValue == nil {
 			t.Error("Key ( " + KeyValue.Key + " ) with value (" + KeyValue.Value + ") not found in request")
 			continue
 		}
 
-		if reflect.TypeOf(decodedBody[KeyValue.Key].Data()).Kind() == reflect.Bool {
-			valueToCheck = strconv.FormatBool(decodedBody[KeyValue.Key].Data().(bool))
-		} else if reflect.TypeOf(decodedBody[KeyValue.Key].Data()).Kind() == reflect.Float64 {
-			valueToCheck = strconv.FormatFloat(decodedBody[KeyValue.Key].Data().(float64), 'f', -1, 64)
-		} else {
-			valueToCheck = decodedBody[KeyValue.Key].Data().(string)
+		switch reflect.TypeOf(decodedBodyValue).Kind() {
+		case reflect.Bool:
+			valueToCheck = strconv.FormatBool(decodedBodyValue.(bool))
+		case reflect.Float64:
+			valueToCheck = strconv.FormatFloat(decodedBodyValue.(float64), 'f', -1, 64)
+		default:
+			valueToCheck = decodedBodyValue.(string)
 		}
+
 		if valueToCheck != KeyValue.Value {
 			t.Error("Expected ( " + KeyValue.Value + " ) in key ( " + KeyValue.Key + " ) but got ( " + valueToCheck + " )")
 		}
