@@ -1,7 +1,8 @@
 # Test Helper
+### Now works for parallel execution (yay!)
 #### only works for JSON or non-body requests
 #### Only works for single layer json objects, not objects within object  ( this will be added soon )
-#### Not optimized for parallel execution
+
 
 # Import
 import th "github.com/zkynet/testhelper"
