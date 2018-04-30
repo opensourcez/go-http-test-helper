@@ -7,22 +7,28 @@
 import th "github.com/zkynet/testhelper"
 
 # Variables to define
-	th.TestResultMap = make(map[string]map[string]*gabs.Container)
-	th.ShouldLog = true
-	th.Cookies = make(map[string]*http.Cookie)
+```
+testInstance := th.TestHelper{
+    TestResultMap: make(map[string]map[string]*gabs.Container),
+    ShouldLog:     true,
+    Cookies:       make(map[string]*http.Cookie),
+}
+```
 
 # Test results map
 All response bodies are saved in a map with their TestCode as an index
 ```
-TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
+th.TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
 ```
 This way you can access them later
 ```
-	loginUser = th.TestResultMap["USER-005"]
-	th.TestThis(th.NewHTTPTest(
+
+
+	loginUser := testInstance.TestResultMap["USER-001"]
+	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
-			Label: "LoginWith(USER-005)", TestCode: "USER-014",
-			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"meow"}`),
+			Label: "LoginWith(USER-001)", TestCode: "USER-002",
+			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + userPasswordPostCreate + `"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/normal/login",
 			Method: "POST",
 			Headers: map[string]string{
@@ -44,11 +50,11 @@ This way you can access them later
 # Example Test
 ```
 func TestUser(t *testing.T) {
-	userPasswordPostCreate := "meowmeow"
-	th.TestThis(th.NewHTTPTest(
+    t.Parallel()
+	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meowmewo","facebook_id":"012345678"}`),
+			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meow","facebook_id":"012345678"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
 			Method: "POST",
 			Headers: map[string]string{
@@ -79,10 +85,11 @@ func TestUser(t *testing.T) {
 # Example test with errors
 ```
 func TestUser(t *testing.T) {
-	th.TestThis(th.NewHTTPTest(
+    t.Parallel()
+	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meowmeow","facebook_id":"012345678"}`),
+			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meow","facebook_id":"012345678"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
 			Method: "POST",
 			Headers: map[string]string{

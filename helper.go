@@ -13,9 +13,11 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
-var ShouldLog bool
-var Cookies map[string]*http.Cookie
-var TestResultMap map[string]map[string]*gabs.Container
+type TestHelper struct {
+	ShouldLog     bool
+	Cookies       map[string]*http.Cookie
+	TestResultMap map[string]map[string]*gabs.Container
+}
 
 type HTTPTestIn struct {
 	Label    string
@@ -54,14 +56,14 @@ func NewHTTPTest(
 	}
 }
 
-func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
-	if ShouldLog {
+func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
+	if th.ShouldLog {
 		log.Println("====== Sending method ( " + HTTPTest.HTTPTestIn.Method + " ) to =======")
 		log.Println(HTTPTest.HTTPTestIn.URL)
 	}
 
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
-	for _, v := range Cookies {
+	for _, v := range th.Cookies {
 		req.AddCookie(v)
 	}
 
@@ -77,7 +79,7 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	if ShouldLog {
+	if th.ShouldLog {
 		log.Println("====== Received ( " + resp.Status + " ) =======")
 		if len(body) > 0 {
 			log.Println(strings.TrimSuffix(string(body), "\n"))
@@ -86,17 +88,17 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	}
 
 	if len(resp.Cookies()) > 0 {
-		if ShouldLog {
+		if th.ShouldLog {
 			log.Println("====== Received new cookies =======")
 		}
 
 		for _, v := range resp.Cookies() {
-			if ShouldLog {
+			if th.ShouldLog {
 				log.Println(v)
 			}
-			Cookies[v.Name] = v
+			th.Cookies[v.Name] = v
 		}
-		if ShouldLog {
+		if th.ShouldLog {
 			log.Println("===============================================")
 		}
 
@@ -193,13 +195,15 @@ func decodeBody(body []byte) map[string]*gabs.Container {
 	return children
 }
 
-func TestThis(HTTPTest *HTTPTest, t *testing.T) {
+func (th *TestHelper) TestThis(
+	HTTPTest *HTTPTest,
+	t *testing.T) {
 	t.Run(HTTPTest.HTTPTestIn.TestCode+":"+HTTPTest.HTTPTestIn.Label, func(t *testing.T) {
 
-		response, body := sendRequest(HTTPTest)
+		response, body := th.sendRequest(HTTPTest)
 
 		decodedBody := decodeBody(body)
-		TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
+		th.TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
 
 		if checkForStatusAndCode(response, HTTPTest.HTTPTestOut.Code, HTTPTest.HTTPTestOut.Status, t) {
 			checkKeyValues(decodedBody, HTTPTest.HTTPTestOut.KeyValues, t)
