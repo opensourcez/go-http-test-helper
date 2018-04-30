@@ -10,11 +10,11 @@ import th "github.com/zkynet/testhelper"
 # Variables to define
 ```
 testInstance := th.TestHelper{
-    // Map of responses from json api
+        // Map of responses from endpoints
     TestResultMap: make(map[string]map[string]*gabs.Container),
-    // if this particular instance should output logs
+        // if this particular instance should log requests
     ShouldLog:     true,
-    // cookies from http responses ( if any are present )
+        // cookies from http responses 
     Cookies:       make(map[string]*http.Cookie),
 }
 ```
@@ -26,15 +26,14 @@ th.TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
 ```
 This way you can access them later
 ```
-	loginUser := testInstance.TestResultMap["USER-001"]
+	loginUser := testInstance.TestResultMap["SomeTestCode"]
 	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "LoginWith(USER-001)", TestCode: "USER-002",
-			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + userPasswordPostCreate + `"}`),
-			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/normal/login",
+			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + loginUser["password"].Data().(string) + `"}`),
+			URL:    "https://localhost:3333/login",
 			Method: "POST",
 			Headers: map[string]string{
-				os.Getenv("RequestTokenName"): os.Getenv("RequestToken"),
 				"Content-Type":                "application/json",
 			},
 		},
@@ -54,13 +53,11 @@ This way you can access them later
 func TestUser(t *testing.T) {
     t.Parallel()
 	
-    // save password externally for later user
-    userPasswordPostCreate := "meowmeow"
 	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:    []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"` + userPasswordPostCreate + `","facebook_id":"012345678"}`),
-			URL:     os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
+			Body:    []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"mowmeowm","facebook_id":"012345678"}`),
+			URL:     "https://localhost:3333/user",
 			Method:  "POST",
 			Headers: headers,
 		},
@@ -80,7 +77,7 @@ func TestUser(t *testing.T) {
 # Example error-free output
 ```
 2018/04/30 16:42:13 ====== Sending method ( POST ) to =======
-2018/04/30 16:42:13 http://localhost:1337/user
+2018/04/30 16:42:13 http://localhost:3333/user
 2018/04/30 16:42:13 ====== Received ( 201 Created ) =======
 2018/04/30 16:42:13 {"id":"e10eddb7-4e02-4ed5-9105-df1ec903a8b7","name":"user1","phone":"5678","email":"user1@zkynet.io","disabled":false}
 2018/04/30 16:42:13 ===============================================
@@ -91,14 +88,12 @@ func TestUser(t *testing.T) {
 ```
 func TestUser(t *testing.T) {
     t.Parallel()
-	
-    // save password externally for later user
-	userPasswordPostCreate := "meowmeow"
+
 	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:    []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"` + userPasswordPostCreate + `","facebook_id":"012345678"}`),
-			URL:     os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
+			Body:    []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"mowmeowe","facebook_id":"012345678"}`),
+			URL:     "https://localhost:3333/user",
 			Method:  "POST",
 			Headers: headers,
 		},
