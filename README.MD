@@ -16,7 +16,7 @@ This way you can access them later
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "LoginWith(USER-005)", TestCode: "USER-014",
-			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + userPasswordPostCreate + `"}`),
+			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"meow"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/normal/login",
 			Method: "POST",
 			Headers: map[string]string{
