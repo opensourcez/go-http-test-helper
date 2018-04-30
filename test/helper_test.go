@@ -1,4 +1,4 @@
-package testhelper
+package test
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	th "github.com/zkynet/testhelper"
 )
 
 type Test struct {
@@ -41,21 +42,21 @@ func runTests(t *testing.T) {
 			"Content-Type": "application/json",
 		}
 
-		testInstance := TestHelper{
+		testInstance := th.TestHelper{
 			TestResultMap: make(map[string]map[string]*gabs.Container),
 			ShouldLog:     true,
 			Cookies:       make(map[string]*http.Cookie),
 		}
 
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "TestHelper", TestCode: "HELPER-001",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/test",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
@@ -70,21 +71,21 @@ func runTests(t *testing.T) {
 			"Content-Type": "application/json",
 		}
 
-		testInstance := TestHelper{
+		testInstance := th.TestHelper{
 			TestResultMap: make(map[string]map[string]*gabs.Container),
 			ShouldLog:     true,
 			Cookies:       make(map[string]*http.Cookie),
 		}
 
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "TestHelper", TestCode: "HELPER-002",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/test",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
@@ -101,21 +102,21 @@ func runTests(t *testing.T) {
 			"Content-Type": "application/json",
 		}
 
-		testInstance := TestHelper{
+		testInstance := th.TestHelper{
 			TestResultMap: make(map[string]map[string]*gabs.Container),
 			ShouldLog:     true,
 			Cookies:       make(map[string]*http.Cookie),
 		}
 
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "TestHelper", TestCode: "HELPER-003",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/test",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
@@ -130,21 +131,21 @@ func runTests(t *testing.T) {
 			"Content-Type": "application/json",
 		}
 
-		testInstance := TestHelper{
+		testInstance := th.TestHelper{
 			TestResultMap: make(map[string]map[string]*gabs.Container),
 			ShouldLog:     true,
 			Cookies:       make(map[string]*http.Cookie),
 		}
 
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "HeaderTest", TestCode: "HELPER-004",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/reflect-header",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"content_type": "application/json",
 				},
@@ -159,21 +160,21 @@ func runTests(t *testing.T) {
 			"Content-Type": "application/json",
 		}
 
-		testInstance := TestHelper{
+		testInstance := th.TestHelper{
 			TestResultMap: make(map[string]map[string]*gabs.Container),
 			ShouldLog:     true,
 			Cookies:       make(map[string]*http.Cookie),
 		}
 
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "TestGetCookie", TestCode: "HELPER-005",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/get-cookie",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
@@ -181,15 +182,15 @@ func runTests(t *testing.T) {
 				KeyPresent: []string{"Name", "Value", "Path", "MaxAge", "HttpOnly", "Domain", "Expires", "RawExpires", "Secure", "Raw", "Unparsed"},
 			}), t)
 		fmt.Println(testInstance.TestResultMap)
-		testInstance.TestThis(NewHTTPTest(
-			HTTPTestIn{
+		testInstance.TestThis(th.NewHTTPTest(
+			th.HTTPTestIn{
 				Label: "TestSendCookie", TestCode: "HELPER-006",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/send-cookie",
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
 				KeyValues: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
