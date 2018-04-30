@@ -5,6 +5,9 @@
 # Import
 import th "github.com/zkynet/testhelper"
 
+# Logging
+th.ShouldLog = false/true
+
 # Test results map
 All response bodies are saved in a map with their TestCode as an index
 ```

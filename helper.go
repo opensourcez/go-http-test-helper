@@ -13,7 +13,7 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
-var shouldLog = true
+var ShouldLog bool
 
 var cookies = map[string]*http.Cookie{}
 
