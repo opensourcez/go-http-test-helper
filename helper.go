@@ -119,14 +119,9 @@ func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *tes
 	if len(decodedBody) < 1 && len(Fields) < 1 {
 		return
 	} else if len(decodedBody) < 1 && len(Fields) > 0 {
-		t.Error("No fields in response body but should have (" + strconv.Itoa(len(Fields)) + " )")
+		t.Error("No fields in response body but should have (" + strconv.Itoa(len(Fields)) + " ) number of fields")
 	}
 
-	for _, key := range Fields {
-		if decodedBody[key].Data() == nil {
-			t.Error("Could not find key ( " + key + " ) in response body")
-		}
-	}
 	for decodedBodyKey := range decodedBody {
 		shouldContinue := false
 		for _, key := range Fields {
