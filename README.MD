@@ -1,6 +1,5 @@
 # Test Helper
-### Now works for parallel execution (yay!)
-#### only works for JSON or non-body requests
+#### Only works for JSON or non-body requests
 #### Only works for single layer json objects, not objects within object  ( this will be added soon )
 
 
