@@ -20,13 +20,14 @@ func TestMain(t *testing.T) {
 
 	fmt.Println("Server started on port: " + os.Getenv("Port"))
 
-	credentials := handlers.AllowCredentials()
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	go http.ListenAndServe(":3333", handlers.CORS(originsOk, methodsOk)(setUpRoutes()))
+	runTests(t)
+}
 
-	go http.ListenAndServe(":3333", handlers.CORS(credentials, originsOk, methodsOk)(setUpRoutes()))
-
-	t.Run("", func(t *testing.T) {
+func runTests(t *testing.T) {
+	t.Run("BaseHelloTest", func(t *testing.T) {
 
 		headers := map[string]string{
 			"Content-Type": "application/json",
@@ -54,7 +55,6 @@ func TestMain(t *testing.T) {
 			}), t)
 
 	})
-
 }
 
 func setUpRoutes() *mux.Router {
@@ -66,13 +66,11 @@ func setUpRoutes() *mux.Router {
 		var test Test
 		if err := json.NewDecoder(r.Body).Decode(&test); err != nil {
 			panic(err)
-			return
 		}
 
 		w.WriteHeader(200)
 		if err := json.NewEncoder(w).Encode(test); err != nil {
 			panic(err)
-			return
 		}
 
 	}).Methods("POST")
