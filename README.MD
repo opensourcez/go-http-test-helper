@@ -1,12 +1,13 @@
 # Test Helper
-## only works for JSON or non-body requests
-## Only works for single layer json objects, not objects within object  ( this will be added soon )
+#### only works for JSON or non-body requests
+#### Only works for single layer json objects, not objects within object  ( this will be added soon )
 
-## import
+# import
 import th "github.com/zkynet/testhelper"
 
 # INPUT
 ```
+func TestUser(t *testing.T) {
 	userPasswordPostCreate := "meowmeow"
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
@@ -27,6 +28,7 @@ import th "github.com/zkynet/testhelper"
 			},
 			KeyPresent: []string{"id", "disabled", "name", "phone", "email"},
 		}), t)
+}
 ```
 
 # OUTPUT
@@ -42,6 +44,7 @@ import th "github.com/zkynet/testhelper"
 ```
 # IN
 ```
+func TestUser(t *testing.T) {
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
@@ -61,7 +64,7 @@ import th "github.com/zkynet/testhelper"
 			},
 			KeyPresent: []string{"id", "disabled", "name", "email"},
 		}), t)
-```
+}
 ```
 
 # OUTPUT WITH ERRORS
