@@ -42,8 +42,6 @@ func TestUser(t *testing.T) {
 
 # INPUT WITH ERRORS
 ```
-# IN
-```
 func TestUser(t *testing.T) {
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
