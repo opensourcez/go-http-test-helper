@@ -42,7 +42,7 @@ func TestUser(t *testing.T) {
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"` + userPasswordPostCreate + `","facebook_id":"012345678"}`),
+			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meowmewo","facebook_id":"012345678"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
 			Method: "POST",
 			Headers: map[string]string{
@@ -76,7 +76,7 @@ func TestUser(t *testing.T) {
 	th.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
 			Label: "CreateNewUser", TestCode: "USER-001",
-			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"` + userPasswordPostCreate + `","facebook_id":"012345678"}`),
+			Body:   []byte(`{"name":"user1","phone":"5678","email":"user1@zkynet.io","password":"meowmeow","facebook_id":"012345678"}`),
 			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/user",
 			Method: "POST",
 			Headers: map[string]string{
