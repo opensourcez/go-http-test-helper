@@ -1,6 +1,6 @@
 # Test Helper
-#### Only works for JSON or non-body requests
-#### Only works for single layer json objects, not objects within object  ( this will be added soon )
+#### Only works for JSON or empty body requests
+#### Does not work on requests with objects within objects  ( this will be added soon )
 
 
 # Import
