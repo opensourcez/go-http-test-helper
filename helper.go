@@ -28,14 +28,9 @@ type HTTPTestIn struct {
 	Headers  map[string]string
 }
 
-type KeyValueInBody struct {
-	Key   string
-	Value string
-}
-
 type HTTPTestOut struct {
 	Body       string
-	KeyValues  []*KeyValueInBody
+	KeyValues  map[string]string
 	KeyPresent []string
 	Status     string
 	Code       int
@@ -146,18 +141,18 @@ func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *tes
 	}
 
 }
-func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues []*KeyValueInBody, t *testing.T) {
+func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues map[string]string, t *testing.T) {
 	if len(decodedBody) < 1 {
 		return
 	}
 
-	for _, KeyValue := range KeyValues {
+	for key, value := range KeyValues {
 
 		var valueToCheck string
-		decodedBodyValue := decodedBody[KeyValue.Key].Data()
+		decodedBodyValue := decodedBody[key].Data()
 
 		if decodedBodyValue == nil {
-			t.Error("Key ( " + KeyValue.Key + " ) with value (" + KeyValue.Value + ") not found in request")
+			t.Error("Key ( " + key + " ) with value (" + value + ") not found in request")
 			continue
 		}
 
@@ -170,8 +165,8 @@ func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues []*KeyValu
 			valueToCheck = decodedBodyValue.(string)
 		}
 
-		if valueToCheck != KeyValue.Value {
-			t.Error("Expected ( " + KeyValue.Value + " ) in key ( " + KeyValue.Key + " ) but got ( " + valueToCheck + " )")
+		if valueToCheck != value {
+			t.Error("Expected ( " + value + " ) in key ( " + key + " ) but got ( " + valueToCheck + " )")
 		}
 	}
 }
