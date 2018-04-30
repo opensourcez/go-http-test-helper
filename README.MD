@@ -6,8 +6,10 @@
 # Import
 import th "github.com/zkynet/testhelper"
 
-# Logging
-th.ShouldLog = false/true
+# Variables to define
+	th.TestResultMap = make(map[string]map[string]*gabs.Container)
+	th.ShouldLog = true
+	th.Cookies = make(map[string]*http.Cookie)
 
 # Test results map
 All response bodies are saved in a map with their TestCode as an index
