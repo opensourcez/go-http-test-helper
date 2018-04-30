@@ -122,3 +122,10 @@ func TestUser(t *testing.T) {
 
 
 ```
+
+
+# Tessting
+The test unit will spawn a web sever on port 3333
+```
+go test -v
+```
