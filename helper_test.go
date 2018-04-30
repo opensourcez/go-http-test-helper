@@ -27,8 +27,9 @@ func TestMain(t *testing.T) {
 }
 
 func runTests(t *testing.T) {
-	t.Run("BaseHelloTest", func(t *testing.T) {
 
+	t.Run("BaseHelloTest1-parallel", func(t *testing.T) {
+		t.Parallel()
 		headers := map[string]string{
 			"Content-Type": "application/json",
 		}
@@ -42,6 +43,35 @@ func runTests(t *testing.T) {
 		testInstance.TestThis(NewHTTPTest(
 			HTTPTestIn{
 				Label: "TestHelper", TestCode: "HELPER-001",
+				Body:    []byte(`{"hello":"hello back at you !"}`),
+				URL:     "http://localhost:3333/test",
+				Method:  "POST",
+				Headers: headers,
+			},
+			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+				KeyValues: map[string]string{
+					"hello": "hello back at you !",
+				},
+				KeyPresent: []string{"hello"},
+			}), t)
+
+	})
+
+	t.Run("BaseHelloTest2-parallel", func(t *testing.T) {
+		t.Parallel()
+		headers := map[string]string{
+			"Content-Type": "application/json",
+		}
+
+		testInstance := TestHelper{
+			TestResultMap: make(map[string]map[string]*gabs.Container),
+			ShouldLog:     true,
+			Cookies:       make(map[string]*http.Cookie),
+		}
+
+		testInstance.TestThis(NewHTTPTest(
+			HTTPTestIn{
+				Label: "TestHelper", TestCode: "HELPER-002",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     "http://localhost:3333/test",
 				Method:  "POST",
