@@ -14,8 +14,8 @@ import (
 )
 
 var ShouldLog bool
-
-var cookies = map[string]*http.Cookie{}
+var Cookies map[string]*http.Cookie
+var TestResultMap map[string]map[string]*gabs.Container
 
 type HTTPTestIn struct {
 	Label    string
@@ -54,8 +54,6 @@ func NewHTTPTest(
 	}
 }
 
-var TestResultMap = make(map[string]map[string]*gabs.Container)
-
 func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	if ShouldLog {
 		log.Println("====== Sending method ( " + HTTPTest.HTTPTestIn.Method + " ) to =======")
@@ -63,7 +61,7 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	}
 
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
-	for _, v := range cookies {
+	for _, v := range Cookies {
 		req.AddCookie(v)
 	}
 
@@ -96,7 +94,7 @@ func sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 			if ShouldLog {
 				log.Println(v)
 			}
-			cookies[v.Name] = v
+			Cookies[v.Name] = v
 		}
 		if ShouldLog {
 			log.Println("===============================================")
