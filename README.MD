@@ -2,10 +2,40 @@
 #### only works for JSON or non-body requests
 #### Only works for single layer json objects, not objects within object  ( this will be added soon )
 
-# import
+# Import
 import th "github.com/zkynet/testhelper"
 
-# INPUT
+# Test results map
+All response bodies are saved in a map with their TestCode as an index
+```
+TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
+```
+This way you can access them later
+```
+	loginUser = th.TestResultMap["USER-005"]
+	th.TestThis(th.NewHTTPTest(
+		th.HTTPTestIn{
+			Label: "LoginWith(USER-005)", TestCode: "USER-014",
+			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + userPasswordPostCreate + `"}`),
+			URL:    os.Getenv("Url") + ":" + os.Getenv("Port") + "/normal/login",
+			Method: "POST",
+			Headers: map[string]string{
+				os.Getenv("RequestTokenName"): os.Getenv("RequestToken"),
+				"Content-Type":                "application/json",
+			},
+		},
+		th.HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			KeyValues: []*th.KeyValueInBody{
+				&th.KeyValueInBody{Key: "name", Value: loginUser["name"].Data().(string)},
+				&th.KeyValueInBody{Key: "email", Value: loginUser["email"].Data().(string)},
+				&th.KeyValueInBody{Key: "phone", Value: loginUser["phone"].Data().(string)},
+			},
+			KeyPresent: []string{"id", "disabled", "name", "phone", "email", "disabled"},
+		}), t)
+```
+
+
+# Example Test
 ```
 func TestUser(t *testing.T) {
 	userPasswordPostCreate := "meowmeow"
@@ -31,7 +61,7 @@ func TestUser(t *testing.T) {
 }
 ```
 
-# OUTPUT
+# Example error-free output
 ```
 2018/04/30 12:45:58 ====== Sending method ( POST ) to =======
 2018/04/30 12:45:58 http://localhost:1337/user
@@ -40,7 +70,7 @@ func TestUser(t *testing.T) {
 ```
 
 
-# INPUT WITH ERRORS
+# Example test with errors
 ```
 func TestUser(t *testing.T) {
 	th.TestThis(th.NewHTTPTest(
@@ -65,7 +95,7 @@ func TestUser(t *testing.T) {
 }
 ```
 
-# OUTPUT WITH ERRORS
+# Example output with errors
 ```
 --- FAIL: TestUser (0.35s)
     --- FAIL: TestUser/USER-001:CreateNewUser (0.07s)
