@@ -15,8 +15,17 @@ testInstance := th.TestHelper{
     ShouldLog:     true,
         // cookies from http responses 
     Cookies:       make(map[string]*http.Cookie),
+		// Toggle parallel execution on/off
+	Parallel      bool
 }
 ```
+
+# Prallel execution
+Parallel execution can be toggled on and off with the Parallel setting
+```
+th.Parallel = true/false
+```
+You can toggle this variable anytime in your test series to indicate that the following test can be ran parallel
 
 # Test results map
 All response bodies are saved in a map with their TestCode as an index

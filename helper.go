@@ -17,8 +17,8 @@ type TestHelper struct {
 	ShouldLog     bool
 	Cookies       map[string]*http.Cookie
 	TestResultMap map[string]map[string]*gabs.Container
+	Parallel      bool
 }
-
 type HTTPTestIn struct {
 	Label    string
 	TestCode string
@@ -191,6 +191,9 @@ func (th *TestHelper) TestThis(
 	t *testing.T) {
 	t.Run(HTTPTest.HTTPTestIn.TestCode+":"+HTTPTest.HTTPTestIn.Label, func(t *testing.T) {
 
+		if th.Parallel {
+			t.Parallel()
+		}
 		response, body := th.sendRequest(HTTPTest)
 
 		decodedBody := decodeBody(body)
