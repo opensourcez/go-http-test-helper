@@ -122,9 +122,10 @@ func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *tes
 		t.Error("No fields in response body but should have (" + strconv.Itoa(len(Fields)) + " ) number of fields")
 	}
 
-	for decodedBodyKey := range decodedBody {
+	for _, key := range Fields {
 		shouldContinue := false
-		for _, key := range Fields {
+		for decodedBodyKey := range decodedBody {
+
 			if decodedBodyKey == key {
 				shouldContinue = true
 			}
@@ -132,7 +133,7 @@ func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *tes
 		if shouldContinue {
 			continue
 		}
-		t.Error("Key (" + decodedBodyKey + ") is not suppose to be in response")
+		t.Error("Key (" + key + ") not found in response")
 	}
 
 }
