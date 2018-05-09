@@ -15,8 +15,6 @@ testInstance := th.TestHelper{
     ShouldLog:     true,
         // cookies from http responses 
     Cookies:       make(map[string]*http.Cookie),
-		// Toggle parallel execution on/off
-	Parallel      bool
 }
 ```
 
@@ -37,6 +35,7 @@ This way you can access them later
 	loginUser := testInstance.TestResultMap["SomeTestCode"]
 	testInstance.TestThis(th.NewHTTPTest(
 		th.HTTPTestIn{
+			Parallel: true, // indicate that this test can be ran parellel
 			Label: "LoginWith(USER-001)", TestCode: "USER-002",
 			Body:   []byte(`{"email":"` + loginUser["email"].Data().(string) + `","password":"` + loginUser["password"].Data().(string) + `"}`),
 			URL:    "https://localhost:3333/login",

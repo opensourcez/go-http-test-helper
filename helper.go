@@ -26,6 +26,7 @@ type HTTPTestIn struct {
 	URL      string
 	Method   string
 	Headers  map[string]string
+	Parallel bool
 }
 
 type HTTPTestOut struct {
@@ -191,9 +192,10 @@ func (th *TestHelper) TestThis(
 	t *testing.T) {
 	t.Run(HTTPTest.HTTPTestIn.TestCode+":"+HTTPTest.HTTPTestIn.Label, func(t *testing.T) {
 
-		if th.Parallel {
+		if HTTPTest.HTTPTestIn.Parallel {
 			t.Parallel()
 		}
+
 		response, body := th.sendRequest(HTTPTest)
 
 		decodedBody := decodeBody(body)
