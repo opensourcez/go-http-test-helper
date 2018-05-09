@@ -52,10 +52,6 @@ func NewHTTPTest(
 }
 
 func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
-	if th.ShouldLog {
-		log.Println("====== Sending method ( " + HTTPTest.HTTPTestIn.Method + " ) to =======")
-		log.Println(HTTPTest.HTTPTestIn.URL)
-	}
 
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
 	for _, v := range th.Cookies {
@@ -75,16 +71,20 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if th.ShouldLog {
-		log.Println("====== Received ( " + resp.Status + " ) =======")
+		log.Println("==============================================================")
+		log.Println("SENT " + HTTPTest.HTTPTestIn.Method + ": " + HTTPTest.HTTPTestIn.URL)
+		log.Println("RECEIVED ( " + resp.Status + " )")
 		if len(body) > 0 {
 			log.Println(strings.TrimSuffix(string(body), "\n"))
+		} else {
+			log.Println("EMPTY BODY")
 		}
-		log.Println("===============================================")
+		log.Println("==============================================================")
 	}
 
 	if len(resp.Cookies()) > 0 {
 		if th.ShouldLog {
-			log.Println("====== Received new cookies =======")
+			log.Println("==================== RECEIVED NEW COOKIES ====================")
 		}
 
 		for _, v := range resp.Cookies() {
@@ -94,7 +94,7 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 			th.Cookies[v.Name] = v
 		}
 		if th.ShouldLog {
-			log.Println("===============================================")
+			log.Println("==============================================================")
 		}
 
 	}
