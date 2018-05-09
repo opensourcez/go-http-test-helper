@@ -19,11 +19,7 @@ testInstance := th.TestHelper{
 ```
 
 # Prallel execution
-Parallel execution can be toggled on and off with the Parallel setting
-```
-th.Parallel = true/false
-```
-You can toggle this variable anytime in your test series to indicate that the following test can be ran parallel
+Parallel execution can be indicated in the HTTPTestIn struct with the Parallel variable.
 
 # Test results map
 All response bodies are saved in a map with their TestCode as an index
