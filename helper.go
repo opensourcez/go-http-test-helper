@@ -2,6 +2,7 @@ package testhelper
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/Jeffail/gabs"
+	"github.com/clbanning/mxj"
 )
 
 type TestHelper struct {
@@ -52,9 +54,13 @@ func NewHTTPTest(
 	}
 }
 
-func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
+func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Response, []byte) {
 
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
+	if err != nil {
+		t.Error("Could not send request")
+		t.Fail()
+	}
 	for _, v := range th.Cookies {
 		req.AddCookie(v)
 	}
@@ -66,7 +72,8 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest) (*http.Response, []byte) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		t.Error("Could not send request")
+		t.Fail()
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -126,7 +133,6 @@ func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *tes
 	for _, key := range Fields {
 		shouldContinue := false
 		for decodedBodyKey := range decodedBody {
-
 			if decodedBodyKey == key {
 				shouldContinue = true
 			}
@@ -147,7 +153,6 @@ func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues map[string
 
 		var valueToCheck string
 		decodedBodyValue := decodedBody[key].Data()
-
 		if decodedBodyValue == nil {
 			t.Error("Key ( " + key + " ) with value (" + value + ") not found in request")
 			continue
@@ -168,7 +173,7 @@ func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues map[string
 	}
 }
 
-func decodeBody(body []byte) map[string]*gabs.Container {
+func decodeBody(body []byte, t *testing.T) map[string]*gabs.Container {
 
 	if len(body) < 1 {
 		return nil
@@ -176,14 +181,28 @@ func decodeBody(body []byte) map[string]*gabs.Container {
 
 	jsonParsed, err := gabs.ParseJSON(body)
 	if err != nil {
-		log.Println(err)
+		objectMapFromXML, err := mxj.NewMapXml(body)
+		if err == nil {
+			var jsonData []byte
+			for i := range objectMapFromXML {
+				jsonData, err = json.Marshal(objectMapFromXML[i])
+			}
+			if err == nil {
+				jsonParsed, err = gabs.ParseJSON(jsonData)
+				if err != nil {
+					t.Error("Request body could not be converted to JSON or XML")
+					return nil
+				}
+			}
+		}
+
 	}
 
 	children, err := jsonParsed.S().ChildrenMap()
 	if err != nil {
-		log.Println(err)
+		t.Error("JSON coult not be converted to GABS container, no body content available")
+		return nil
 	}
-
 	return children
 }
 
@@ -196,14 +215,19 @@ func (th *TestHelper) TestThis(
 			t.Parallel()
 		}
 
-		response, body := th.sendRequest(HTTPTest)
+		response, body := th.sendRequest(HTTPTest, t)
 
-		decodedBody := decodeBody(body)
+		decodedBody := decodeBody(body, t)
+
 		th.TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
 
 		if checkForStatusAndCode(response, HTTPTest.HTTPTestOut.Code, HTTPTest.HTTPTestOut.Status, t) {
-			checkKeyValues(decodedBody, HTTPTest.HTTPTestOut.KeyValues, t)
-			checkFields(decodedBody, HTTPTest.HTTPTestOut.KeyPresent, t)
+			if decodedBody != nil {
+
+				checkKeyValues(decodedBody, HTTPTest.HTTPTestOut.KeyValues, t)
+				checkFields(decodedBody, HTTPTest.HTTPTestOut.KeyPresent, t)
+
+			}
 		}
 	})
 }
