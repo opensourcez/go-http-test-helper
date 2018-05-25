@@ -56,6 +56,10 @@ func NewHTTPTest(
 
 func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Response, []byte) {
 
+	if th.ShouldLog {
+		log.Println("==============================================================")
+		log.Println("SENT " + HTTPTest.HTTPTestIn.Method + ": " + HTTPTest.HTTPTestIn.URL)
+	}
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
 	if err != nil {
 		t.Error("Could not send request")
@@ -79,8 +83,6 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if th.ShouldLog {
-		log.Println("==============================================================")
-		log.Println("SENT " + HTTPTest.HTTPTestIn.Method + ": " + HTTPTest.HTTPTestIn.URL)
 		log.Println("RECEIVED ( " + resp.Status + " )")
 		if len(body) > 0 {
 			log.Println(strings.TrimSuffix(string(body), "\n"))
