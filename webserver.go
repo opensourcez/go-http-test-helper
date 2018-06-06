@@ -7,6 +7,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type Test struct {
+	Hello string `json:"hello"`
+}
+
+type Header struct {
+	ContentType string `json:"content_type"`
+}
+
 func setUpRoutes() *mux.Router {
 	r := mux.NewRouter()
 
