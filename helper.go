@@ -2,9 +2,7 @@ package testhelper
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -12,14 +10,12 @@ import (
 	"testing"
 
 	"github.com/Jeffail/gabs"
-	"github.com/clbanning/mxj"
 )
 
 type TestHelper struct {
-	ShouldLog     bool
-	Cookies       map[string]*http.Cookie
-	TestResultMap map[string]map[string]*gabs.Container
-	Parallel      bool
+	ShouldLog      bool
+	Cookies        map[string]*http.Cookie
+	ResponseBucket map[string]map[string]*gabs.Container
 }
 type HTTPTestIn struct {
 	Label    string
@@ -28,15 +24,15 @@ type HTTPTestIn struct {
 	URL      string
 	Method   string
 	Headers  map[string]string
-	Parallel bool
 }
 
 type HTTPTestOut struct {
-	Body       string
-	KeyValues  map[string]string
-	KeyPresent []string
-	Status     string
-	Code       int
+	Body              string
+	KeyValuesInBody   map[string]string
+	KeysPresentInBody []string
+	Status            string
+	Code              int
+	Headers           map[string]string
 }
 
 type HTTPTest struct {
@@ -57,13 +53,13 @@ func NewHTTPTest(
 func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Response, []byte) {
 
 	if th.ShouldLog {
-		log.Println("==============================================================")
-		log.Println("SENT " + HTTPTest.HTTPTestIn.Method + ": " + HTTPTest.HTTPTestIn.URL)
+		t.Log("\033[35m==============================================================\033[0m")
+		t.Log(HTTPTest.HTTPTestIn.Method, "(", HTTPTest.HTTPTestIn.URL, ")")
 	}
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
 	if err != nil {
-		t.Error("Could not send request")
-		t.Fail()
+		t.Error("\033[31mCould not make request:\033[0m ", err)
+		t.Skip()
 	}
 	for _, v := range th.Cookies {
 		req.AddCookie(v)
@@ -76,35 +72,38 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Error("Could not send request")
-		t.Fail()
+		t.Error("\033[31mCould not send request:\033[0m ", err)
+		t.Skip()
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if th.ShouldLog {
-		log.Println("RECEIVED ( " + resp.Status + " )")
+		t.Log("CODE (", strconv.Itoa(resp.StatusCode), ") STATUS (", resp.Status, ")")
 		if len(body) > 0 {
-			log.Println(strings.TrimSuffix(string(body), "\n"))
+			t.Log(strings.TrimSuffix(string(body), "\n"))
 		} else {
-			log.Println("EMPTY BODY")
+			t.Log("NO RESPONSE BODY")
 		}
-		log.Println("==============================================================")
+
+		if len(resp.Cookies()) < 1 {
+			t.Log("\033[35m==============================================================\033[0m")
+		}
 	}
 
 	if len(resp.Cookies()) > 0 {
 		if th.ShouldLog {
-			log.Println("==================== RECEIVED NEW COOKIES ====================")
+			t.Log("\033[35m==================== RECEIVED NEW COOKIES ====================\033[0m")
 		}
 
 		for _, v := range resp.Cookies() {
 			if th.ShouldLog {
-				log.Println(v)
+				t.Log(v)
 			}
 			th.Cookies[v.Name] = v
 		}
 		if th.ShouldLog {
-			log.Println("==============================================================")
+			t.Log("\033[35m==============================================================\033[0m")
 		}
 
 	}
@@ -112,70 +111,99 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 	return resp, body
 }
 
-func checkForStatusAndCode(response *http.Response, expectedCode int, expectedStatus string, t *testing.T) bool {
-	isOk := true
+func (th *TestHelper) checkHTTPStatus(response *http.Response, expectedStatus string, t *testing.T) {
 	if response.Status != expectedStatus {
-		isOk = false
-		t.Error("Expected Status ( " + expectedStatus + " ) but got: " + response.Status)
+		t.Error("\033[31mExpected Status (", expectedStatus, ") but got (", response.Status, ")\033[0m")
 	}
-	if response.StatusCode != expectedCode {
-		isOk = false
-		t.Error("Expected Code ( " + strconv.Itoa(expectedCode) + " ) but got: " + strconv.Itoa(response.StatusCode))
+	if th.ShouldLog {
+		t.Log("Wanted status (", expectedStatus, ") and got (", response.Status, ")")
 	}
-	return isOk
+
 }
 
-func checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *testing.T) {
+func (th *TestHelper) checkHTTPCode(response *http.Response, expectedCode int, t *testing.T) {
+	if response.StatusCode != expectedCode {
+		t.Error("\033[31mExpected Code (", strconv.Itoa(expectedCode), ") but got (", strconv.Itoa(response.StatusCode), ")\033[0m")
+	}
+	if th.ShouldLog {
+		t.Log("Wanted code (", strconv.Itoa(expectedCode), ") and got( ", strconv.Itoa(response.StatusCode), ")")
+	}
+}
+
+func (th *TestHelper) checkFields(decodedBody map[string]*gabs.Container, Fields []string, t *testing.T) {
 	if len(decodedBody) < 1 && len(Fields) < 1 {
 		return
 	} else if len(decodedBody) < 1 && len(Fields) > 0 {
-		t.Error("No fields in response body but should have (" + strconv.Itoa(len(Fields)) + " ) number of fields")
-	}
-
-	for _, key := range Fields {
-		shouldContinue := false
-		for decodedBodyKey := range decodedBody {
-			if decodedBodyKey == key {
-				shouldContinue = true
-			}
+		if th.ShouldLog {
+			t.Error("\033[31mExpecting (", strconv.Itoa(len(Fields)), ") fields in response but got (", strconv.Itoa(len(decodedBody)), ")\033[0m")
 		}
-		if shouldContinue {
-			continue
-		}
-		t.Error("Key (" + key + ") not found in response")
-	}
-
-}
-func checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues map[string]string, t *testing.T) {
-	if len(decodedBody) < 1 {
 		return
 	}
 
+	for _, key := range Fields {
+		continueInOuterLoop := false
+		for decodedBodyKey := range decodedBody {
+			if decodedBodyKey == key {
+				if th.ShouldLog {
+					t.Log("Key (", key, ") found in response")
+				}
+				continueInOuterLoop = true
+				continue
+
+			}
+		}
+		if continueInOuterLoop {
+			continue
+		}
+		t.Error("\033[31mKey (", key, ") not found in response\033[0m")
+	}
+
+}
+func (th *TestHelper) checkKeyValues(decodedBody map[string]*gabs.Container, KeyValues map[string]string, t *testing.T) {
 	for key, value := range KeyValues {
 
 		var valueToCheck string
 		decodedBodyValue := decodedBody[key].Data()
 		if decodedBodyValue == nil {
-			t.Error("Key ( " + key + " ) with value (" + value + ") not found in request")
+			t.Error("\033[31mKey ( " + key + " ) with value (" + value + ") not found in request\033[0m")
 			continue
 		}
 
 		switch reflect.TypeOf(decodedBodyValue).Kind() {
 		case reflect.Bool:
+			if th.ShouldLog {
+				t.Log("Key ", key, "is of type ( bool )")
+			}
 			valueToCheck = strconv.FormatBool(decodedBodyValue.(bool))
+		case reflect.Int:
+			if th.ShouldLog {
+				t.Log("Key ", key, "is of type ( int )")
+			}
+			valueToCheck = strconv.Itoa(decodedBodyValue.(int))
 		case reflect.Float64:
+			if th.ShouldLog {
+				t.Log("Key ", key, "is of type ( float64 )")
+			}
 			valueToCheck = strconv.FormatFloat(decodedBodyValue.(float64), 'f', -1, 64)
 		default:
+			if th.ShouldLog {
+				t.Log("Key ", key, "is of type ( string )")
+			}
 			valueToCheck = decodedBodyValue.(string)
 		}
 
 		if valueToCheck != value {
-			t.Error("Expected ( " + value + " ) in key ( " + key + " ) but got ( " + valueToCheck + " )")
+			t.Error("\033[31mExpected ( " + value + " ) in key ( " + key + " ) but got ( " + valueToCheck + " )\033[0m")
+			return
+		}
+
+		if th.ShouldLog {
+			t.Log("Wanted value (", value, ") in key (", key, ") and got (", valueToCheck, ")")
 		}
 	}
 }
 
-func decodeBody(body []byte, t *testing.T) map[string]*gabs.Container {
+func (th *TestHelper) decodeBody(body []byte, t *testing.T) map[string]*gabs.Container {
 
 	if len(body) < 1 {
 		return nil
@@ -183,26 +211,13 @@ func decodeBody(body []byte, t *testing.T) map[string]*gabs.Container {
 
 	jsonParsed, err := gabs.ParseJSON(body)
 	if err != nil {
-		objectMapFromXML, err := mxj.NewMapXml(body)
-		if err == nil {
-			var jsonData []byte
-			for i := range objectMapFromXML {
-				jsonData, err = json.Marshal(objectMapFromXML[i])
-			}
-			if err == nil {
-				jsonParsed, err = gabs.ParseJSON(jsonData)
-				if err != nil {
-					t.Error("Request body could not be converted to JSON or XML")
-					return nil
-				}
-			}
-		}
-
+		t.Error("\033[31mRequest body could not be converted to JSON or XML:\033[30m", err)
+		return nil
 	}
 
 	children, err := jsonParsed.S().ChildrenMap()
 	if err != nil {
-		t.Error("JSON coult not be converted to GABS container, no body content available")
+		t.Error("\033[31mJSON coult not be converted to GABS container:\033[30m", err)
 		return nil
 	}
 	return children
@@ -213,23 +228,14 @@ func (th *TestHelper) TestThis(
 	t *testing.T) {
 	t.Run(HTTPTest.HTTPTestIn.TestCode+":"+HTTPTest.HTTPTestIn.Label, func(t *testing.T) {
 
-		if HTTPTest.HTTPTestIn.Parallel {
-			t.Parallel()
-		}
-
 		response, body := th.sendRequest(HTTPTest, t)
 
-		decodedBody := decodeBody(body, t)
+		th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode] = th.decodeBody(body, t)
 
-		th.TestResultMap[HTTPTest.HTTPTestIn.TestCode] = decodedBody
+		th.checkHTTPStatus(response, HTTPTest.HTTPTestOut.Status, t)
+		th.checkHTTPCode(response, HTTPTest.HTTPTestOut.Code, t)
+		th.checkKeyValues(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeyValuesInBody, t)
+		th.checkFields(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeysPresentInBody, t)
 
-		if checkForStatusAndCode(response, HTTPTest.HTTPTestOut.Code, HTTPTest.HTTPTestOut.Status, t) {
-			if decodedBody != nil {
-
-				checkKeyValues(decodedBody, HTTPTest.HTTPTestOut.KeyValues, t)
-				checkFields(decodedBody, HTTPTest.HTTPTestOut.KeyPresent, t)
-
-			}
-		}
 	})
 }
