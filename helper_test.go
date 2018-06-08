@@ -54,7 +54,7 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"hello": "hello back at you !",
 				},
@@ -82,7 +82,7 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"hello": "hello back at you !",
 				},
@@ -107,12 +107,31 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"content_type": "application/json",
 				},
 				KeysPresentInBody: []string{"content_type"},
 			}), t)
+
+	})
+
+	t.Run("RawBodyTest", func(t *testing.T) {
+		t.Parallel()
+		headers := map[string]string{
+			"Content-Type": "application/json",
+		}
+		testInstance := NewHTTPTestHelper(true, "", "", "")
+
+		testInstance.TestThis(NewHTTPTest(
+			HTTPTestIn{
+				Label: "TestGetCookie", TestCode: "HELPER-004",
+				Body:    []byte(`{"hello":"hello back at you !"}`),
+				URL:     baseURL + "/raw-body",
+				Method:  "GET",
+				Headers: headers,
+			},
+			HTTPTestOut{RawBody: `{"raw-body":"test value"}`, Code: 200, Status: "200 OK"}), t)
 
 	})
 
@@ -131,7 +150,7 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
@@ -147,7 +166,7 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
@@ -173,7 +192,7 @@ func runTests(t *testing.T) {
 				Method:  "GET",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
@@ -189,7 +208,7 @@ func runTests(t *testing.T) {
 				Method:  "POST",
 				Headers: headers,
 			},
-			HTTPTestOut{Body: "", Code: 200, Status: "200 OK",
+			HTTPTestOut{Code: 200, Status: "200 OK",
 				KeyValuesInBody: map[string]string{
 					"hello": "hello back at you !",
 				},

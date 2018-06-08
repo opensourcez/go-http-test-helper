@@ -11,6 +11,10 @@ type Test struct {
 	Hello string `json:"hello"`
 }
 
+type RawBody struct {
+	RawBody string `json:"raw-body"`
+}
+
 type Header struct {
 	ContentType string `json:"content_type"`
 }
@@ -58,6 +62,15 @@ func setUpRoutes() *mux.Router {
 		}
 
 	}).Methods("POST")
+
+	r.HandleFunc("/raw-body", func(w http.ResponseWriter, r *http.Request) {
+
+		w.WriteHeader(200)
+		if err := json.NewEncoder(w).Encode(&RawBody{RawBody: "test value"}); err != nil {
+			panic(err)
+		}
+
+	}).Methods("GET")
 
 	r.HandleFunc("/get-cookie", func(w http.ResponseWriter, r *http.Request) {
 

@@ -69,7 +69,7 @@ type HTTPTestIn struct {
 }
 
 type HTTPTestOut struct {
-	Body              string
+	RawBody           string
 	KeyValuesInBody   map[string]string
 	KeysPresentInBody []string
 	Status            string
@@ -286,6 +286,12 @@ func (th *TestHelper) checkHeaders(response *http.Response, out *HTTPTestOut, t 
 	}
 }
 
+func (th *TestHelper) checkRawBody(responseBody string, expectedBody string, t *testing.T) {
+	if strings.TrimRight(responseBody, "\n") != strings.TrimRight(expectedBody, "\n") {
+		t.Error(th.ErrorColor, "Excpected body: ", strings.TrimRight(responseBody, "\n"), "\n but got: ", strings.TrimRight(expectedBody, "\n"), endColor)
+	}
+}
+
 func (th *TestHelper) TestThis(
 	HTTPTest *HTTPTest,
 	t *testing.T) {
@@ -303,9 +309,14 @@ func (th *TestHelper) TestThis(
 
 		th.checkHTTPStatus(response, HTTPTest.HTTPTestOut.Status, t)
 		th.checkHTTPCode(response, HTTPTest.HTTPTestOut.Code, t)
-		th.checkKeyValues(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeyValuesInBody, t)
-		th.checkFields(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeysPresentInBody, t)
 		th.checkHeaders(response, &HTTPTest.HTTPTestOut, t)
+
+		if HTTPTest.HTTPTestOut.RawBody != "" {
+			th.checkRawBody(string(body), HTTPTest.HTTPTestOut.RawBody, t)
+		} else {
+			th.checkKeyValues(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeyValuesInBody, t)
+			th.checkFields(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeysPresentInBody, t)
+		}
 
 	})
 }
