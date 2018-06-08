@@ -195,7 +195,7 @@ testHelper.ResponseBucket["BASE-001"]["KEY2"].Data().(string)
 &HTTPTest{
     HTTPTestIn{
         Note:  "This is a custom note for this test, it will show up in the test output if logging is enabled..",
-        Label: "BaseTestKeysOnly", TestCode: "BASE-002",
+        Label: "BaseTestFullJSON", TestCode: "BASE-003",
         Body:    []byte(`{"KEY1":"VALUE1","KEY2":"VALUE2"}`),
         URL:      "http://your-domain.com/test",
         Method:  "POST",
@@ -225,7 +225,7 @@ testHelper.ResponseBucket["BASE-001"]["KEY2"].Data().(string)
 &HTTPTest{
     HTTPTestIn{
         Note:  "This is a custom note for this test, it will show up in the test output if logging is enabled..",
-        Label: "BaseTestKeysOnly", TestCode: "BASE-002",
+        Label: "BaseTestRawBody", TestCode: "BASE-004",
         Body:    []byte(`{"KEY1":"VALUE1","KEY2":"VALUE2"}`),
         URL:      "http://your-domain.com/test",
         Method:  "POST",
@@ -251,7 +251,7 @@ testHelper.ResponseBucket["BASE-001"]["KEY2"].Data().(string)
 &HTTPTest{
     HTTPTestIn{
         Note:  "This is a custom note for this test, it will show up in the test output if logging is enabled..",
-        Label: "BaseTestKeysOnly", TestCode: "BASE-002",
+        Label: "BaseTestIgnoreHeaders", TestCode: "BASE-005",
         Body:    []byte(`{"KEY1":"VALUE1","KEY2":"VALUE2"}`),
         URL:      "http://your-domain.com/test",
         Method:  "POST",
