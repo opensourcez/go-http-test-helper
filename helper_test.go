@@ -45,7 +45,7 @@ func runTests(t *testing.T) {
 
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Note:  "This is a test!",
 				Label: "TestHelper", TestCode: "HELPER-001",
@@ -55,14 +55,15 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
-				KeysPresentInBody: []string{"hello"},
+				Keys: []string{"hello"},
 				Headers: map[string]string{
 					"Content-Type": "text/plain; charset=utf-8",
 				},
-			}), t)
+				IgnoredHeaders: []string{"Host"},
+			}}, t)
 
 	})
 
@@ -74,7 +75,7 @@ func runTests(t *testing.T) {
 
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Label: "TestHelper", TestCode: "HELPER-002",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
@@ -83,11 +84,11 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
-				KeysPresentInBody: []string{"hello"},
-			}), t)
+				Keys: []string{"hello"},
+			}}, t)
 
 	})
 
@@ -99,7 +100,7 @@ func runTests(t *testing.T) {
 
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Label: "HeaderTest", TestCode: "HELPER-003",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
@@ -108,11 +109,11 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"content_type": "application/json",
 				},
-				KeysPresentInBody: []string{"content_type"},
-			}), t)
+				Keys: []string{"content_type"},
+			}}, t)
 
 	})
 
@@ -123,7 +124,7 @@ func runTests(t *testing.T) {
 		}
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Label: "TestGetCookie", TestCode: "HELPER-004",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
@@ -131,7 +132,7 @@ func runTests(t *testing.T) {
 				Method:  "GET",
 				Headers: headers,
 			},
-			HTTPTestOut{RawBody: `{"raw-body":"test value"}`, Code: 200, Status: "200 OK"}), t)
+			HTTPTestOut{RawBody: []byte(`{"raw-body":"test value"}`), Code: 200, Status: "200 OK"}}, t)
 
 	})
 
@@ -142,7 +143,7 @@ func runTests(t *testing.T) {
 		}
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Label: "TestGetCookie", TestCode: "HELPER-004",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
@@ -151,14 +152,14 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
 				},
-				KeysPresentInBody: []string{"Name", "Value", "Path", "MaxAge", "HttpOnly", "Domain", "Expires", "RawExpires", "Secure", "Raw", "Unparsed"},
-			}), t)
+				Keys: []string{"Name", "Value", "Path", "MaxAge", "HttpOnly", "Domain", "Expires", "RawExpires", "Secure", "Raw", "Unparsed"},
+			}}, t)
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
 				Label: "TestSendCookie", TestCode: "HELPER-005",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
@@ -167,12 +168,12 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
 				},
-				KeysPresentInBody: []string{"Name", "Value", "Path", "MaxAge", "HttpOnly", "Domain", "Expires", "RawExpires", "Secure", "Raw", "Unparsed"},
-			}), t)
+				Keys: []string{"Name", "Value", "Path", "MaxAge", "HttpOnly", "Domain", "Expires", "RawExpires", "Secure", "Raw", "Unparsed"},
+			}}, t)
 
 	})
 
@@ -184,8 +185,9 @@ func runTests(t *testing.T) {
 
 		testInstance := NewHTTPTestHelper(true, "", "", "")
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
+				Note:  "This test should fail because of two missing keys in body: name and value",
 				Label: "TestEmptyBody", TestCode: "HELPER-006",
 				Body:    nil,
 				URL:     baseURL + "/empty-body",
@@ -193,15 +195,16 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"Name":  "cookiemonster",
 					"Value": "cookiemonster",
 				},
-				KeysPresentInBody: []string{"Name", "Value"},
-			}), t)
+				Keys: []string{"Name", "Value"},
+			}}, t)
 
-		testInstance.TestThis(NewHTTPTest(
+		testInstance.TestThis(&HTTPTest{
 			HTTPTestIn{
+				Note:  "This test should fail with the message: Key ( goodbye ) not found in response",
 				Label: "TestHelper", TestCode: "HELPER-007",
 				Body:    []byte(`{"hello":"hello back at you !"}`),
 				URL:     baseURL + "/test",
@@ -209,11 +212,11 @@ func runTests(t *testing.T) {
 				Headers: headers,
 			},
 			HTTPTestOut{Code: 200, Status: "200 OK",
-				KeyValuesInBody: map[string]string{
+				KeyValues: map[string]string{
 					"hello": "hello back at you !",
 				},
-				KeysPresentInBody: []string{"goodbye"},
-			}), t)
+				Keys: []string{"goodbye"},
+			}}, t)
 
 	})
 }

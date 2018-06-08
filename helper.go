@@ -69,13 +69,13 @@ type HTTPTestIn struct {
 }
 
 type HTTPTestOut struct {
-	RawBody           string
-	KeyValuesInBody   map[string]string
-	KeysPresentInBody []string
-	Status            string
-	Code              int
-	Headers           map[string]string
-	HeadersToIgnore   []string
+	RawBody        []byte
+	KeyValues      map[string]string
+	Keys           []string
+	Status         string
+	Code           int
+	Headers        map[string]string
+	IgnoredHeaders []string
 }
 
 type HTTPTest struct {
@@ -83,20 +83,10 @@ type HTTPTest struct {
 	HTTPTestOut
 }
 
-func NewHTTPTest(
-	HTTPTestIn HTTPTestIn,
-	HTTPTestOut HTTPTestOut,
-) *HTTPTest {
-	return &HTTPTest{
-		HTTPTestIn:  HTTPTestIn,
-		HTTPTestOut: HTTPTestOut,
-	}
-}
-
 func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Response, []byte) {
 
 	if th.ShouldLog {
-		t.Log(th.InfoColor, "==============================================================", endColor)
+		t.Log(th.InfoColor, "===============================================================", endColor)
 		t.Log(th.InfoColor, HTTPTest.HTTPTestIn.Method, "(", HTTPTest.HTTPTestIn.URL, ")", endColor)
 	}
 	req, err := http.NewRequest(HTTPTest.HTTPTestIn.Method, HTTPTest.HTTPTestIn.URL, bytes.NewBuffer(HTTPTest.HTTPTestIn.Body))
@@ -130,13 +120,13 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 		}
 
 		if len(resp.Cookies()) < 1 {
-			t.Log(th.InfoColor, "==============================================================", endColor)
+			t.Log(th.InfoColor, "===============================================================", endColor)
 		}
 	}
 
 	if len(resp.Cookies()) > 0 {
 		if th.ShouldLog {
-			t.Log(th.InfoColor, "==================== RECEIVED NEW CookieBucket ====================", endColor)
+			t.Log(th.InfoColor, "==================== RECEIVED NEW CookieBucket ===============", endColor)
 		}
 
 		for _, v := range resp.Cookies() {
@@ -269,7 +259,7 @@ func (th *TestHelper) decodeBody(body []byte, t *testing.T) map[string]*gabs.Con
 func (th *TestHelper) checkHeaders(response *http.Response, out *HTTPTestOut, t *testing.T) {
 
 	for header, expectedHeaderValue := range out.Headers {
-		for _, headerToBeIgnored := range out.HeadersToIgnore {
+		for _, headerToBeIgnored := range out.IgnoredHeaders {
 			if header == headerToBeIgnored {
 				continue
 			}
@@ -298,24 +288,22 @@ func (th *TestHelper) TestThis(
 	t.Run(HTTPTest.HTTPTestIn.TestCode+":"+HTTPTest.HTTPTestIn.Label, func(t *testing.T) {
 
 		if HTTPTest.HTTPTestIn.Note != "" {
-			t.Log(th.InfoColor, "==================== NOTES ==================", endColor)
+			t.Log(th.InfoColor, "==================== NOTE =====================================", endColor)
 			t.Log(th.InfoColor, HTTPTest.HTTPTestIn.Note, endColor)
-			t.Log(th.InfoColor, "=============================================", endColor)
 		}
 
 		response, body := th.sendRequest(HTTPTest, t)
-
-		th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode] = th.decodeBody(body, t)
 
 		th.checkHTTPStatus(response, HTTPTest.HTTPTestOut.Status, t)
 		th.checkHTTPCode(response, HTTPTest.HTTPTestOut.Code, t)
 		th.checkHeaders(response, &HTTPTest.HTTPTestOut, t)
 
-		if HTTPTest.HTTPTestOut.RawBody != "" {
-			th.checkRawBody(string(body), HTTPTest.HTTPTestOut.RawBody, t)
+		if HTTPTest.HTTPTestOut.RawBody != nil {
+			th.checkRawBody(string(body), string(HTTPTest.HTTPTestOut.RawBody), t)
 		} else {
-			th.checkKeyValues(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeyValuesInBody, t)
-			th.checkFields(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeysPresentInBody, t)
+			th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode] = th.decodeBody(body, t)
+			th.checkKeyValues(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.KeyValues, t)
+			th.checkFields(th.ResponseBucket[HTTPTest.HTTPTestIn.TestCode], HTTPTest.HTTPTestOut.Keys, t)
 		}
 
 	})
