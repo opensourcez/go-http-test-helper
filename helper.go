@@ -17,6 +17,7 @@ var endColor = "\033[0m"
 type TestHelper struct {
 	ShouldLog      bool
 	CookieBucket   map[string]*http.Cookie
+	HeaderBucket   map[string]string
 	ResponseBucket map[string]map[string]*gabs.Container
 	ErrorColor     string
 	SuccessColor   string
@@ -54,6 +55,7 @@ func NewHTTPTestHelper(
 		ShouldLog:      logging,
 		ResponseBucket: make(map[string]map[string]*gabs.Container),
 		CookieBucket:   make(map[string]*http.Cookie),
+		HeaderBucket:   make(map[string]string),
 	}
 
 }
@@ -139,6 +141,19 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 			t.Log(th.InfoColor, "==============================================================", endColor)
 		}
 
+	}
+
+	if th.ShouldLog {
+		t.Log(th.InfoColor, "==================== RECEIVED HEADERSR ===============", endColor)
+	}
+	for i, v := range resp.Header {
+		if th.ShouldLog {
+			t.Log(i + " : " + v[0])
+		}
+		th.HeaderBucket[i] = v[0]
+	}
+	if th.ShouldLog {
+		t.Log(th.InfoColor, "==============================================================", endColor)
 	}
 
 	return resp, body
