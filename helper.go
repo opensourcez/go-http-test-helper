@@ -85,6 +85,13 @@ type HTTPTest struct {
 	HTTPTestOut
 }
 
+func (th *TestHelper) NewHTTPTest(testIn HTTPTestIn, testOut HTTPTestOut) *HTTPTest {
+	return &HTTPTest{
+		HTTPTestIn:  testIn,
+		HTTPTestOut: testOut,
+	}
+}
+
 func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Response, []byte) {
 
 	if th.ShouldLog {
