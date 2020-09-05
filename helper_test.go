@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gorilla/handlers"
 )
@@ -26,7 +27,8 @@ func TestMain(t *testing.T) {
 		}
 		fmt.Println("Test server started on port: " + port)
 	}()
-
+	// sleeping for 2 seconds to make sure webserver is launched
+	time.Sleep(2 * time.Second)
 	runTests(t)
 }
 
@@ -36,11 +38,6 @@ func runTests(t *testing.T) {
 		t.Parallel()
 		headers := map[string]string{
 			"Content-Type": "application/json",
-		}
-
-		_ = []string{
-			"Content-Type",
-			"Content-length",
 		}
 
 		testInstance := NewHTTPTestHelper(true, "", "", "")

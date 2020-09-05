@@ -135,7 +135,7 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 
 	if len(resp.Cookies()) > 0 {
 		if th.ShouldLog {
-			t.Log(th.InfoColor, "==================== RECEIVED NEW CookieBucket ===============", endColor)
+			t.Log(th.InfoColor, "==================== RECEIVED NEW COOKIES ===============", endColor)
 		}
 
 		for _, v := range resp.Cookies() {
@@ -151,7 +151,7 @@ func (th *TestHelper) sendRequest(HTTPTest *HTTPTest, t *testing.T) (*http.Respo
 	}
 
 	if th.ShouldLog {
-		t.Log(th.InfoColor, "==================== RECEIVED HEADERSR ===============", endColor)
+		t.Log(th.InfoColor, "==================== RECEIVED HEADERS ===============", endColor)
 	}
 	for i, v := range resp.Header {
 		if th.ShouldLog {
@@ -270,11 +270,7 @@ func (th *TestHelper) decodeBody(body []byte, t *testing.T) map[string]*gabs.Con
 		return nil
 	}
 
-	children, err := jsonParsed.S().ChildrenMap()
-	if err != nil {
-		t.Error(th.ErrorColor, "JSON coult not be converted to GABS container:", endColor, err)
-		return nil
-	}
+	children := jsonParsed.S().ChildrenMap()
 	return children
 }
 
